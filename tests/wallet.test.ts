@@ -1,3 +1,4 @@
+import dotenv from "dotenv";
 import { ethers } from "ethers";
 import fs from "fs";
 import path from "path";
@@ -12,6 +13,7 @@ import {
     fromWeiToEther,
     generateEvmSeed,
 } from "../src/wallet";
+dotenv.config();
 
 // Test directory for keystores
 const TEST_DIR = "./test-wallets";
