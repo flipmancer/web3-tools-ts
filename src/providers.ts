@@ -1,12 +1,5 @@
 import { ethers, providers } from "ethers";
 
-if (!process.env.ALCHEMY_API_KEY) {
-    throw new Error("ALCHEMY_API_KEY environment variable is not set.");
-}
-
-const alchemyRPC = `https://<chain>.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`;
-const alchemyWsRPC = `wss://<chain>.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`;
-
 // Supported Alchemy chains for EVM and non-EVM blockchains
 // NOTE: Add more chains as needed
 export type AlchemyChains =
@@ -27,13 +20,23 @@ export type AlchemyChains =
     | "hyperliquid-mainnet"
     | "hyperliquid-testnet";
 
+function getUrl(rpcType: "JSONRPC" | "WS", chain: AlchemyChains): string {
+    if (!process.env.ALCHEMY_API_KEY) {
+        throw new Error("ALCHEMY_API_KEY environment variable is not set.");
+    }
+    return {
+        JSONRPC: `https://${chain}.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
+        WS: `wss://${chain}.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
+    }[rpcType];
+}
+
 /**
  * Creates a JsonRpcProvider connected to Alchemy for the specified chain
  * @param chain - The Alchemy chain to connect to
  * @returns A JsonRpcProvider for the specified chain
  */
 export function alchemyProvider(chain: AlchemyChains): providers.JsonRpcProvider {
-    return new ethers.providers.JsonRpcProvider(alchemyRPC.replace("<chain>", chain));
+    return new ethers.providers.JsonRpcProvider(getUrl("JSONRPC", chain));
 }
 
 /**
@@ -42,5 +45,5 @@ export function alchemyProvider(chain: AlchemyChains): providers.JsonRpcProvider
  * @returns A WebSocketProvider for the specified chain
  */
 export function alchemyWebSocket(chain: AlchemyChains): providers.WebSocketProvider {
-    return new ethers.providers.WebSocketProvider(alchemyWsRPC.replace("<chain>", chain));
+    return new ethers.providers.WebSocketProvider(getUrl("WS", chain));
 }
