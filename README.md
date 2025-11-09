@@ -5,6 +5,12 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+## ⚠️ Alpha Release Warning
+
+**Current version:** `0.1.0-alpha.1`
+
+This package is in **active development** and **not production-ready**. APIs may change without notice. Use at your own risk.
+
 ## 🚀 Features
 
 ### Current Tools
@@ -191,6 +197,13 @@ Tests cover:
 - [ ] Batch RPC calls
 - [ ] Retry logic & fallback providers
 - [ ] Bitcoin & Solana wallet support
+
+## Roadmap to v1.0.0
+
+- [ ] Comprehensive test coverage
+- [ ] Security audit
+- [ ] API stability guarantee
+- [ ] Documentation completion
 
 ---
 

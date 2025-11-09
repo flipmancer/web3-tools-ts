@@ -1,7 +1,7 @@
 {
 	"name": "web3-tools-ts",
-	"version": "0.1.0",
-	"description": "Simple web3 tool written in typescript",
+	"version": "0.1.0-alpha.1",
+	"description": "🚧 ALPHA: TypeScript utilities for EVM wallets and cryptography",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"outDir": "./dist",
@@ -22,10 +22,17 @@
 		"web3",
 		"ethereum",
 		"bitcoin",
-		"solana"
+		"solana",
+		"alpha",
+		"experimental"
 	],
 	"author": "NoobishDev",
 	"license": "MIT",
+	"files": [
+		"dist/",
+		"README.md",
+		"LICENSE"
+	],
 	"bugs": {
 		"url": "https://github.com/flipmancer/web3-tools-ts/issues"
 	},
@@ -47,6 +54,10 @@
 		"typescript": "^5.3.3"
 	},
 	"engines": {
-		"node": ">=20.0.0"
+		"node": ">=18.0.0"
+	},
+	"publishConfig": {
+		"access": "public",
+		"tag": "alpha"
 	}
 }
