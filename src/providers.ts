@@ -1,4 +1,5 @@
-import { ethers, providers } from "ethers";
+import { ethers as ethersV5 } from "ethers5";
+import { ethers as ethersV6 } from "ethers6";
 
 // Supported Alchemy chains for EVM and non-EVM blockchains
 // NOTE: Add more chains as needed
@@ -35,8 +36,11 @@ function getUrl(rpcType: "JSONRPC" | "WS", chain: AlchemyChains): string {
  * @param chain - The Alchemy chain to connect to
  * @returns A JsonRpcProvider for the specified chain
  */
-export function alchemyProvider(chain: AlchemyChains): providers.JsonRpcProvider {
-    return new ethers.providers.JsonRpcProvider(getUrl("JSONRPC", chain));
+export function alchemyProviderV5(chain: AlchemyChains): ethersV5.providers.JsonRpcProvider {
+    return new ethersV5.providers.JsonRpcProvider(getUrl("JSONRPC", chain));
+}
+export function alchemyProviderV6(chain: AlchemyChains): ethersV6.JsonRpcProvider {
+    return new ethersV6.JsonRpcProvider(getUrl("JSONRPC", chain));
 }
 
 /**
@@ -44,6 +48,9 @@ export function alchemyProvider(chain: AlchemyChains): providers.JsonRpcProvider
  * @param chain - The Alchemy chain to connect to
  * @returns A WebSocketProvider for the specified chain
  */
-export function alchemyWebSocket(chain: AlchemyChains): providers.WebSocketProvider {
-    return new ethers.providers.WebSocketProvider(getUrl("WS", chain));
+export function alchemyWebSocketV5(chain: AlchemyChains): ethersV5.providers.WebSocketProvider {
+    return new ethersV5.providers.WebSocketProvider(getUrl("WS", chain));
+}
+export function alchemyWebSocketV6(chain: AlchemyChains): ethersV6.WebSocketProvider {
+    return new ethersV6.WebSocketProvider(getUrl("WS", chain));
 }

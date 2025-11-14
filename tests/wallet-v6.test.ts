@@ -1,13 +1,13 @@
 import { expect } from "chai";
 
-import { ethers } from "ethers";
+import { ethers as ethersV6 } from "ethers6";
 import fs from "fs";
 import path from "path";
 import {
-    createEvmWallet,
+    createEvmWalletV6,
     decryptEvmKeystore,
     decryptEvmMnemonic,
-    deriveEvmWalletsFromMnemonic,
+    deriveEvmWalletsFromMnemonicV6,
     encryptEvmMnemonic,
     encryptEvmPrivateKey,
     fromEtherToWei,
@@ -19,7 +19,7 @@ import {
 const TEST_DIR = "./test-wallets";
 const TEST_PASSWORD = "test-password-123";
 
-describe("Wallet Module Tests", function () {
+describe("Wallet Module Tests (Ethers v6)", function () {
     // Cleanup test directory before and after tests
     before(function () {
         if (fs.existsSync(TEST_DIR)) {
@@ -34,22 +34,22 @@ describe("Wallet Module Tests", function () {
     });
 
     describe("createEvmWallet", function () {
-        it("should create a valid Ethereum wallet", function () {
-            const wallet = createEvmWallet();
-            expect(wallet).to.be.instanceOf(ethers.Wallet);
+        it("should create a valid Ethereum wallet (v6)", function () {
+            const wallet = createEvmWalletV6();
+            expect(wallet).to.be.instanceOf(ethersV6.HDNodeWallet);
             expect(wallet.address).to.match(/^0x[a-fA-F0-9]{40}$/);
             expect(wallet.privateKey).to.match(/^0x[a-fA-F0-9]{64}$/);
         });
 
-        it("should create wallet with provider", function () {
-            const wallet = createEvmWallet("eth-mainnet");
+        it("should create wallet with provider (v6)", function () {
+            const wallet = createEvmWalletV6("eth-mainnet");
             expect(wallet.provider).to.exist;
         });
     });
 
     describe("encryptEvmPrivateKey and decryptEvmKeystore", function () {
-        it("should encrypt and decrypt private key", async function () {
-            const wallet = ethers.Wallet.createRandom();
+        it("should encrypt and decrypt private key (v6)", async function () {
+            const wallet = ethersV6.Wallet.createRandom();
             const privateKey = wallet.privateKey;
             const publicKey = wallet.address;
 
@@ -63,13 +63,12 @@ describe("Wallet Module Tests", function () {
             expect(fs.existsSync(keystorePath)).to.be.true;
 
             // Decrypt
-            const decryptedWallet = await decryptEvmKeystore(publicKey, TEST_PASSWORD, undefined, TEST_DIR);
-            expect(decryptedWallet.address).to.equal(publicKey);
-            expect(decryptedWallet.privateKey).to.equal(privateKey);
+            const decryptedPrivateKey = await decryptEvmKeystore(publicKey, TEST_PASSWORD, undefined, TEST_DIR);
+            expect(decryptedPrivateKey).to.equal(privateKey);
         });
 
         it("should encrypt without saving to file", async function () {
-            const wallet = ethers.Wallet.createRandom();
+            const wallet = ethersV6.Wallet.createRandom();
             const keystore = await encryptEvmPrivateKey(wallet.privateKey, TEST_PASSWORD, false);
             expect(keystore).to.exist;
             expect(typeof keystore).to.equal("string");
@@ -81,27 +80,27 @@ describe("Wallet Module Tests", function () {
             const mnemonic = generateEvmSeed();
             const words = mnemonic.split(" ");
             expect(words).to.have.lengthOf(24);
-            expect(ethers.utils.isValidMnemonic(mnemonic)).to.be.true;
+            expect(ethersV6.Mnemonic.isValidMnemonic(mnemonic)).to.be.true;
         });
 
         it("should generate 12-word mnemonic with 16 bytes entropy", function () {
             const mnemonic = generateEvmSeed(16);
             const words = mnemonic.split(" ");
             expect(words).to.have.lengthOf(12);
-            expect(ethers.utils.isValidMnemonic(mnemonic)).to.be.true;
+            expect(ethersV6.Mnemonic.isValidMnemonic(mnemonic)).to.be.true;
         });
     });
 
     describe("deriveEvmWalletsFromMnemonic", function () {
-        it("should derive multiple wallets from mnemonic", function () {
+        it("should derive multiple wallets from mnemonic (v6)", function () {
             const mnemonic = generateEvmSeed();
             const numberOfWallets = 5;
 
-            const wallets = deriveEvmWalletsFromMnemonic(mnemonic, numberOfWallets);
+            const wallets = deriveEvmWalletsFromMnemonicV6(mnemonic, numberOfWallets);
 
             expect(wallets).to.have.lengthOf(numberOfWallets);
             wallets.forEach((wallet) => {
-                expect(wallet).to.be.instanceOf(ethers.Wallet);
+                expect(wallet).to.be.instanceOf(ethersV6.HDNodeWallet);
                 expect(wallet.address).to.match(/^0x[a-fA-F0-9]{40}$/);
             });
 
@@ -111,11 +110,11 @@ describe("Wallet Module Tests", function () {
             expect(uniqueAddresses.size).to.equal(numberOfWallets);
         });
 
-        it("should derive wallets deterministically", function () {
+        it("should derive wallets deterministically (v6)", function () {
             const mnemonic = generateEvmSeed();
 
-            const wallets1 = deriveEvmWalletsFromMnemonic(mnemonic, 3);
-            const wallets2 = deriveEvmWalletsFromMnemonic(mnemonic, 3);
+            const wallets1 = deriveEvmWalletsFromMnemonicV6(mnemonic, 3);
+            const wallets2 = deriveEvmWalletsFromMnemonicV6(mnemonic, 3);
 
             // Same mnemonic should produce same wallets
             expect(wallets1[0].address).to.equal(wallets2[0].address);
@@ -123,12 +122,12 @@ describe("Wallet Module Tests", function () {
             expect(wallets1[2].address).to.equal(wallets2[2].address);
         });
 
-        it("should throw error for invalid number of wallets", function () {
+        it("should throw error for invalid number of wallets (v6)", function () {
             const mnemonic = generateEvmSeed();
-            expect(() => deriveEvmWalletsFromMnemonic(mnemonic, 0)).to.throw(
+            expect(() => deriveEvmWalletsFromMnemonicV6(mnemonic, 0)).to.throw(
                 "numberOfWallets must be a positive integer"
             );
-            expect(() => deriveEvmWalletsFromMnemonic(mnemonic, -5)).to.throw(
+            expect(() => deriveEvmWalletsFromMnemonicV6(mnemonic, -5)).to.throw(
                 "numberOfWallets must be a positive integer"
             );
         });
@@ -172,8 +171,7 @@ describe("Wallet Module Tests", function () {
 
     describe("fromWeiToEther and fromEtherToWei", function () {
         it("should convert Wei to Ether", function () {
-            const wei = "1000000000000000000"; // 1 ETH in Wei
-            const ether = fromWeiToEther(wei);
+            const ether = fromWeiToEther(1000000000000000000n);
             expect(ether).to.equal("1.0");
         });
 
@@ -184,8 +182,7 @@ describe("Wallet Module Tests", function () {
         });
 
         it("should handle BigNumber conversion", function () {
-            const wei = ethers.BigNumber.from("2500000000000000000");
-            const ether = fromWeiToEther(wei);
+            const ether = fromWeiToEther(2500000000000000000n);
             expect(ether).to.equal("2.5");
         });
 
