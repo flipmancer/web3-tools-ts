@@ -1,8 +1,9 @@
 import crypto from "crypto";
-import { ethers } from "ethers";
+import { ethers as ethers5 } from "ethers5";
+import { ethers as ethers6 } from "ethers6";
 import fs from "fs";
 import path from "path";
-import { AlchemyChains, alchemyProvider } from "./providers";
+import { AlchemyChains, alchemyProviderV5, alchemyProviderV6 } from "./providers";
 
 /**
  * Encrypts an Ethereum private key into a keystore and optionally saves it to a file
@@ -18,9 +19,9 @@ export async function encryptEvmPrivateKey(
     saveOnFile = true,
     dir = "./wallets"
 ): Promise<string> {
-    const wallet = new ethers.Wallet(privateKey);
+    const wallet = new ethers5.Wallet(privateKey);
     const keystore = await wallet.encrypt(password);
-    const address = ethers.utils.getAddress(wallet.address);
+    const address = ethers5.utils.getAddress(wallet.address);
 
     if (saveOnFile) {
         await fs.promises.mkdir(dir, { recursive: true });
@@ -35,7 +36,7 @@ export async function encryptEvmPrivateKey(
  * @param password - The password used to encrypt the keystore
  * @param chain - Optional Alchemy chain to connect the wallet to a provider
  * @param dir - Directory where the keystore file is located
- * @returns The decrypted Ethereum wallet
+ * @returns The decrypted EVM Private Key
  * @throws Error if the keystore file is not found or decryption fails
  */
 export async function decryptEvmKeystore(
@@ -43,16 +44,15 @@ export async function decryptEvmKeystore(
     password: string,
     chain?: AlchemyChains,
     dir = "./wallets"
-): Promise<ethers.Wallet> {
+): Promise<string> {
     let file: string | undefined;
     try {
-        const address = ethers.utils.getAddress(publicKey); // throws if invalid
+        const address = ethers5.utils.getAddress(publicKey); // throws if invalid
         file = path.join(dir, `keystore-${address.toLowerCase()}.json`);
         const keystore = await fs.promises.readFile(file, "utf-8");
-        const decrypted = await ethers.Wallet.fromEncryptedJson(keystore, password);
-        const provider = chain ? alchemyProvider(chain) : undefined;
+        const decrypted = await ethers5.Wallet.fromEncryptedJson(keystore, password);
 
-        return new ethers.Wallet(decrypted.privateKey, provider);
+        return decrypted.privateKey;
     } catch (err: any) {
         if (err?.code === "ENOENT") throw new Error(`Keystore not found at ${file}`);
         throw err;
@@ -64,10 +64,15 @@ export async function decryptEvmKeystore(
  * @param chain - Optional Alchemy chain to connect the wallet to a provider
  * @returns The newly created EVM wallet
  */
-export function createEvmWallet(chain?: AlchemyChains): ethers.Wallet {
-    const wallet = ethers.Wallet.createRandom();
+export function createEvmWalletV5(chain?: AlchemyChains): ethers5.Wallet {
+    const wallet = ethers5.Wallet.createRandom();
     if (!chain) return wallet;
-    return wallet.connect(alchemyProvider(chain));
+    return wallet.connect(alchemyProviderV5(chain));
+}
+export function createEvmWalletV6(chain?: AlchemyChains): ethers6.HDNodeWallet {
+    const wallet = ethers6.Wallet.createRandom();
+    if (!chain) return wallet;
+    return wallet.connect(alchemyProviderV6(chain));
 }
 
 /**
@@ -75,17 +80,21 @@ export function createEvmWallet(chain?: AlchemyChains): ethers.Wallet {
  * @param weiBigNumber The Wei value to convert
  * @returns The equivalent Ether value as a string
  */
-export function fromWeiToEther(weiBigNumber: ethers.BigNumberish): string {
-    return ethers.utils.formatEther(weiBigNumber);
+export function fromWeiToEther(weiBigNumber: BigInt): string {
+    // BigInt to ethers5.BigNumberish
+    const weiBigNumberish = weiBigNumber.toString();
+    return ethers5.utils.formatEther(weiBigNumberish);
 }
 
 /**
  * Converts an Ether value to Wei
  * @param etherStr The Ether value as a string
- * @returns The equivalent Wei value as a BigNumberish
+ * @returns The equivalent Wei value as a BigInt
  */
-export function fromEtherToWei(etherStr: string): ethers.BigNumberish {
-    return ethers.utils.parseEther(etherStr);
+export function fromEtherToWei(etherStr: string): BigInt {
+    //ethers5.BigNumberish to BigInt
+    const weiBigNumberish = ethers5.utils.parseEther(etherStr);
+    return BigInt(weiBigNumberish.toString());
 }
 
 /**
@@ -98,7 +107,7 @@ export function generateEvmSeed(entropyBytes: number = 32): string {
         throw new Error("entropyBytes must be 16, 20, 24, 28, or 32");
     }
     const entropy = crypto.randomBytes(entropyBytes);
-    return ethers.utils.entropyToMnemonic(entropy);
+    return ethers5.utils.entropyToMnemonic(entropy);
 }
 
 /**
@@ -109,23 +118,45 @@ export function generateEvmSeed(entropyBytes: number = 32): string {
  * @returns Array of derived Ethereum wallets
  * @throws Error if mnemonic is invalid or numberOfWallets is not positive
  */
-export function deriveEvmWalletsFromMnemonic(
+export function deriveEvmWalletsFromMnemonicV5(
     mnemonic: string,
     numberOfWallets: number,
     chain?: AlchemyChains
-): ethers.Wallet[] {
-    if (!ethers.utils.isValidMnemonic(mnemonic)) throw new Error("Invalid BIP-39 mnemonic");
+): Array<ethers5.Wallet> {
+    if (!ethers5.utils.isValidMnemonic(mnemonic)) throw new Error("Invalid BIP-39 mnemonic");
     if (numberOfWallets <= 0) throw new Error("numberOfWallets must be a positive integer");
 
-    const wallets: ethers.Wallet[] = [];
+    const wallets: Array<ethers5.Wallet> = [];
 
     for (let i = 0; i < numberOfWallets; i++) {
         // BIP-44 derivation path for Ethereum: m/44'/60'/0'/0/{index}
         const path = `m/44'/60'/0'/0/${i}`;
-        const w = ethers.Wallet.fromMnemonic(mnemonic, path);
+        const w = ethers5.Wallet.fromMnemonic(mnemonic, path);
 
         // Optionally connect to provider if chain is specified
-        wallets.push(chain ? w.connect(alchemyProvider(chain)) : w);
+        wallets.push(chain ? w.connect(alchemyProviderV5(chain)) : w);
+    }
+
+    return wallets;
+}
+
+export function deriveEvmWalletsFromMnemonicV6(
+    mnemonic: string,
+    numberOfWallets: number,
+    chain?: AlchemyChains
+): Array<ethers6.HDNodeWallet> {
+    if (!ethers6.Mnemonic.isValidMnemonic(mnemonic)) throw new Error("Invalid BIP-39 mnemonic");
+    if (numberOfWallets <= 0) throw new Error("numberOfWallets must be a positive integer");
+    const wallets: Array<ethers6.HDNodeWallet> = [];
+    const parsedMnemonic = ethers6.Mnemonic.fromPhrase(mnemonic); // to ensure mnemonic is valid
+
+    for (let i = 0; i < numberOfWallets; i++) {
+        // BIP-44 derivation path for Ethereum: m/44'/60'/0'/0/{index}
+        const path = `m/44'/60'/0'/0/${i}`;
+        const w = ethers6.HDNodeWallet.fromMnemonic(parsedMnemonic, path);
+
+        // Optionally connect to provider if chain is specified
+        wallets.push(chain ? w.connect(alchemyProviderV6(chain)) : w);
     }
 
     return wallets;

@@ -38,9 +38,11 @@
 	},
 	"homepage": "https://github.com/flipmancer/web3-tools-ts#readme",
 	"dependencies": {
-		"ethers": "^5.8.0",
+		"ethers5": "npm:ethers@^5.7.1",
+		"ethers6": "npm:ethers@^6.9.0",
 		"pino": "^10.1.0",
-		"pino-pretty": "^13.1.2"
+		"pino-pretty": "^13.1.2",
+		"pnpm": "^10.22.0"
 	},
 	"devDependencies": {
 		"@types/chai": "^5.2.3",

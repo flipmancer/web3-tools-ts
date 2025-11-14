@@ -11,6 +11,10 @@
 
 This package is in **active development** and **not production-ready**. APIs may change without notice. Use at your own risk.
 
+## Ethers v5 vs v6
+
+This library supports both ethers v5 and v6. Use the appropriate functions for your version
+
 ## 🚀 Features
 
 ### Current Tools
